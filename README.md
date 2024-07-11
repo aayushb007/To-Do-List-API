@@ -46,7 +46,7 @@ This project implements a RESTful API for managing a Todo List using Node.js, Ex
 ## Usage
 
 Once the server is running, you can access the API endpoints using tools like Postman or curl.
-
+## Endpoints
 ### Authentication endpoints
 - **POST /api/sign-up** - Sign Up
 - **POST /api/login** - Login
