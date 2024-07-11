@@ -1,12 +1,17 @@
-import { Request, Response } from 'express';
-import Todo, { ITodo } from '../models/todoModel';
-import { IUser } from '../models/userModel';
+import { NextFunction, Request, Response } from "express";
+import Todo, { ITodo } from "../models/todoModel";
+import { IUser } from "../models/userModel";
+import { AppError } from "../middlewares/errorHandler";
 
-//Define Custom Request Type
+//Define Custom Request Interface
 interface TodoRequest extends Request {
-    user?: IUser;
+  user?: IUser;
 }
-export const createTodo = async (req: TodoRequest, res: Response) => {
+export const createTodo = async (
+  req: TodoRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const { title, description } = req.body;
   const userId = req.user?.id;
   try {
@@ -17,35 +22,47 @@ export const createTodo = async (req: TodoRequest, res: Response) => {
     });
     await todo.save(); // Adding Data to Todo Collection
     res.status(201).json(todo);
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
+  } catch (error: any) {
+    next(new AppError(error.message, 500));
   }
 };
 
-export const getTodos = async (req: TodoRequest, res: Response) => {
+export const getTodos = async (
+  req: TodoRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const userId = req.user?.id;
   try {
     const todos: ITodo[] = await Todo.find({ user: userId }); // Finding All todos by UserId
     res.status(200).json(todos);
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
+  } catch (error: any) {
+    next(new AppError(error.message, 500));
   }
 };
 
-export const getTodo = async (req: Request, res: Response) => {
+export const getTodo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { id } = req.params;
   try {
-    const todo: ITodo | null = await Todo.findById(id);  // Finding Todo by it's Id
+    const todo: ITodo | null = await Todo.findById(id); // Finding Todo by Id
     if (!todo) {
-      return res.status(404).json({ message: 'To-do not found' });
+      next(new AppError("To-do not found", 404));
     }
     res.status(200).json(todo);
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
+  } catch (error: any) {
+    next(new AppError(error.message, 500));
   }
 };
 
-export const updateTodo = async (req: Request, res: Response) => {
+export const updateTodo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { id } = req.params;
   const { title, description, completed } = req.body;
   try {
@@ -53,25 +70,29 @@ export const updateTodo = async (req: Request, res: Response) => {
       id,
       { title, description, completed },
       { new: true }
-    ); // Edit Todo 
+    );
     if (!todo) {
-      return res.status(404).json({ message: 'To-do not found' });
+      return next(new AppError("To-do not found", 404));
     }
     res.status(200).json(todo);
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
+  } catch (error: any) {
+    next(new AppError(error.message, 500));
   }
 };
 
-export const deleteTodo = async (req: Request, res: Response) => {
+export const deleteTodo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { id } = req.params;
   try {
-    const todo: ITodo | null = await Todo.findByIdAndDelete(id); // Delete Todo 
+    const todo: ITodo | null = await Todo.findByIdAndDelete(id); // Delete Todo
     if (!todo) {
-      return res.status(404).json({ message: 'To-do not found' });
+      return next(new AppError("To-do not found", 404));
     }
-    res.status(200).json({ message: 'To-do deleted successfully' });
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
+    res.status(200).json({ message: "To-do deleted successfully" });
+  } catch (error: any) {
+    next(new AppError(error.message, 500));
   }
 };
