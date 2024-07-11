@@ -21,6 +21,7 @@ export const authenticate = async (
   try {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
     const user = await User.findById(decoded.id);
+    //If  token in invalid
     if (!user) {
       return next(new AppError("Invalid token", 401));
     }
